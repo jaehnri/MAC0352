@@ -1,5 +1,5 @@
 build:
-	docker build . -t ep1-joao-henri
+	docker build -f infra/Dockerfile . -t ep1-joao-henri
 
 run: build
 	docker run --name ep1-joao-henri -a STDOUT -p 8000:8000 ep1-joao-henri
