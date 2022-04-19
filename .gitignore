@@ -1,3 +1,9 @@
 ### CLion ###
 **/.idea/
+**/.cmake
+**/cmake-build-debug
+**/CMakeLists.txt
 
+### EP1
+ep1
+ep1-servidor-exemplo
