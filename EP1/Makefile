@@ -1,7 +1,13 @@
 build:
-	docker build -f infra/Dockerfile . -t ep1-joao-henri
+	gcc -o ep1 src/main.c src/mqtt.c src/util.c
 
 run: build
+	./ep1 8000
+
+build-image:
+	docker build -f infra/Dockerfile . -t ep1-joao-henri
+
+run-docker: build-image
 	docker run -d --name ep1-joao-henri ep1-joao-henri
 
 kill:
