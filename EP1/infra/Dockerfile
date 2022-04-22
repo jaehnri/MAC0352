@@ -5,6 +5,8 @@ WORKDIR /usr/local/lib
 
 EXPOSE 8000
 
-RUN gcc -o ep1 mac0352-servidor-exemplo-ep1.c
+RUN gcc -o ep1 src/main.c src/mqtt.c src/util.c
 
-CMD ["./ep1", "8000"]
+EXPOSE 1883
+
+CMD ["./ep1", "1883"]
