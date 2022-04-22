@@ -1,3 +1,5 @@
+#include <sys/types.h>
+
 /**
  * These definitions are based on this documentation about MQTT 3.1.1:
  * http://www.steves-internet-guide.com/mqtt-protocol-messages-overview/#:~:text=The%20MQTT%20packet%20or%20message,)%20%2B%20Variable%20Header%20%2DExample%20PUBACK
@@ -5,6 +7,7 @@
 
 enum packet_type {
     CONNECT    = 0x1,
+    CONNACK    = 0x2,
     PUBLISH    = 0x3,
     SUBSCRIBE  = 0x8,
     PINGREQ    = 0xc,
@@ -36,4 +39,24 @@ typedef struct fixed_header {
     int length;
 } fixed_header;
 
+
+/**
+ * Finds the type of the received packet and its remaining length.
+ */
 fixed_header* parse_fixed_header(unsigned char* packet);
+
+/**
+ * Creates a CONNACK packet. It is hardcoded as such:
+ * |--------|---------------|---------------|
+ * | Bit    | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+ * |--------|---------------|---------------|
+ * | Byte 1 | CONNACK (0x2) | 0   0   0   0 |
+ * |--------|-------------------------------|
+ * | Byte 2 | Message Length    (2)         |
+ * |--------|-------------------------------|
+ * | Byte 3 | Acknowledge flags (0x00)      |
+ * |--------|-------------------------------|
+ * | Byte 4 | Return Code       (0x00)      |
+ * |--------|---------------|---------------|
+ */
+u_int8_t* create_connack_packet();

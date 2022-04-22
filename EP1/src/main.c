@@ -169,6 +169,8 @@ int main (int argc, char **argv) {
                 switch (h->type) {
                     case CONNECT:
                         printf("CONNECT request\n");
+                        u_int8_t* connack_packet = create_connack_packet();
+                        write(connfd, connack_packet, 4);
                         break;
                     case PUBLISH:
                         printf("PUBLISH request\n");
@@ -182,6 +184,8 @@ int main (int argc, char **argv) {
                     case DISCONNECT:
                         printf("DISCONNECT request\n");
                         break;
+                    default:
+                        printf("Unknown packet request\n");
                 }
 
                 write(connfd, recvline, strlen(recvline));
