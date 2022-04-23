@@ -1,5 +1,5 @@
 build:
-	gcc -o ep1 src/main.c src/mqtt.c src/util.c
+	gcc -o ep1 src/main.c src/mqtt.c src/util.c src/topic.c
 
 run: build
 	./ep1 8000
