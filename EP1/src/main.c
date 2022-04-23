@@ -181,7 +181,8 @@ int main (int argc, char **argv) {
                     case SUBSCRIBE:
                         printf("SUBSCRIBE request\n");
                         subscribe_packet* s = parse_subscribe_packet(recvline);
-
+                        u_int8_t* suback_packet = create_suback_packet(s->message_identifier);
+                        write(connfd, suback_packet, 5);
                         break;
                     case PINGREQ:
                         printf("PINGREQ request\n");
@@ -193,7 +194,7 @@ int main (int argc, char **argv) {
                         printf("Unknown packet request\n");
                 }
 
-                write(connfd, recvline, strlen(recvline));
+                free(h);
             }
             /* ========================================================= */
             /* ========================================================= */

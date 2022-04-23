@@ -3,8 +3,12 @@
 /**
  * Instead of creating a structure that would carry 1 name, the number of subscribers and the array of subscribers,
  * we are creating a structure that just carries a bunch of arrays.
+ * The access to a certain topic will be done accessing the index.
  *
- * Basically, it makes it easier to create the arrays. Otherwise, we would need to malloc a new topic everytime.
+ * topic.subscribers_length[i], topic.subscribers[i], and topic.names[i] refer to the same topic.
+ *
+ * Basically, it makes it easier to create the arrays, i.e, we can malloc everything (the shared memory) before
+ * start listening.
  */
 typedef struct topic {
     int* subscribers_length;

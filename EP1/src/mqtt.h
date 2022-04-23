@@ -10,9 +10,16 @@
 enum packet_type {
     CONNECT    = 0x1,
     CONNACK    = 0x2,
+
     PUBLISH    = 0x3,
+    PUBACK     = 0x4,
+
     SUBSCRIBE  = 0x8,
+    SUBACK     = 0x9,
+
     PINGREQ    = 0xc,
+    PINGRESP   = 0xd,
+
     DISCONNECT = 0xe
 };
 
@@ -76,5 +83,7 @@ typedef struct subscribe_packet {
 subscribe_packet* parse_subscribe_packet(unsigned char* recvline);
 
 void subscribe_client(subscribe_packet* s);
+
+u_int8_t* create_suback_packet(u_int16_t message_id);
 
 /** ================================================================================================================= */
