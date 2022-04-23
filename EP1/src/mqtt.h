@@ -1,5 +1,7 @@
 #include <sys/types.h>
 
+/** ================================================================================================================= */
+
 /**
  * These definitions are based on this documentation about MQTT 3.1.1:
  * http://www.steves-internet-guide.com/mqtt-protocol-messages-overview/#:~:text=The%20MQTT%20packet%20or%20message,)%20%2B%20Variable%20Header%20%2DExample%20PUBACK
@@ -39,11 +41,12 @@ typedef struct fixed_header {
     int length;
 } fixed_header;
 
-
 /**
  * Finds the type of the received packet and its remaining length.
  */
 fixed_header* parse_fixed_header(unsigned char* packet);
+
+/** ================================================================================================================= */
 
 /**
  * Creates a CONNACK packet. It is hardcoded as such:
@@ -60,3 +63,18 @@ fixed_header* parse_fixed_header(unsigned char* packet);
  * |--------|---------------|---------------|
  */
 u_int8_t* create_connack_packet();
+
+
+/** ================================================================================================================= */
+
+typedef struct subscribe_packet {
+    u_int16_t message_identifier;
+    u_int16_t topic_length;
+    unsigned char* topic;
+} subscribe_packet;
+
+subscribe_packet* parse_subscribe_packet(unsigned char* recvline);
+
+void subscribe_client(subscribe_packet* s);
+
+/** ================================================================================================================= */
