@@ -8,7 +8,6 @@
 
 #define MAX_CLIENTS 1000
 
-topic* topics;
 
 /**
  * Uses mmap to allocate memory space that is shared across all child processes of this broker.
@@ -43,27 +42,29 @@ void free_shared_memory(void* ptr, size_t size) {
     }
 }
 
+topic topics;
+
 void create_topic_structure() {
-    topics->names              = malloc_shared_memory(TOPICS_SIZE * sizeof(unsigned char));
-    topics->subscribers        = malloc_shared_memory(TOPICS_SIZE * sizeof(int*));
-    topics->subscribers_length = malloc_shared_memory(TOPICS_SIZE * sizeof(int));
+    topics.names              = malloc_shared_memory(TOPICS_SIZE * sizeof(unsigned char*));
+    topics.subscribers        = malloc_shared_memory(TOPICS_SIZE * sizeof(int*));
+    topics.subscribers_length = malloc_shared_memory(TOPICS_SIZE * sizeof(int));
 
     for (int i = 0; i < TOPICS_SIZE; i++) {
-        topics->names[i] = malloc_shared_memory(SCHAR_MAX * sizeof(char));
-        topics->subscribers[i] = malloc_shared_memory((MAX_CLIENTS + 1) * sizeof(int));
+        topics.names[i] = malloc_shared_memory(SCHAR_MAX * sizeof(char));
+        topics.subscribers[i] = malloc_shared_memory((MAX_CLIENTS + 1) * sizeof(int));
 
-        topics->names[i] = 0;
-        topics->subscribers_length[i] = 0;
+        topics.names[i] = 0;
+        topics.subscribers_length[i] = 0;
     }
 }
 
 void clean_topic_structure() {
     for (int i = 0; i < TOPICS_SIZE; i++) {
-        free_shared_memory(topics->names[i], SCHAR_MAX * sizeof(char));
-        free_shared_memory(topics->subscribers[i], (MAX_CLIENTS + 1) * sizeof(int));
+        free_shared_memory(topics.names[i], SCHAR_MAX * sizeof(char));
+        free_shared_memory(topics.subscribers[i], (MAX_CLIENTS + 1) * sizeof(int));
     }
 
-    free_shared_memory(topics->names, TOPICS_SIZE * sizeof(unsigned char));
-    free_shared_memory(topics->subscribers, TOPICS_SIZE * sizeof(int*));
-    free_shared_memory(topics->subscribers_length, TOPICS_SIZE * sizeof(int));
+    free_shared_memory(topics.names, TOPICS_SIZE * sizeof(unsigned char));
+    free_shared_memory(topics.subscribers, TOPICS_SIZE * sizeof(int*));
+    free_shared_memory(topics.subscribers_length, TOPICS_SIZE * sizeof(int));
 }

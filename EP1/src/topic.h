@@ -12,7 +12,7 @@ typedef struct topic {
     unsigned char** names;
 } topic;
 
-extern topic* topics;
+extern topic topics;
 
 void create_topic_structure();
 
