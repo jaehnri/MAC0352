@@ -1,8 +1,8 @@
 #include "mqtt.h"
 #include "util.h"
 
-#include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 fixed_header* parse_fixed_header(unsigned char* recvline) {
     fixed_header* header = malloc(sizeof(fixed_header));
@@ -37,4 +37,24 @@ u_int8_t* create_connack_packet() {
     print_hex(connack_packet, 4);
 
     return connack_packet;
+}
+
+subscribe_packet* parse_subscribe_packet(unsigned char* recvline) {
+    subscribe_packet* s = malloc(sizeof(subscribe_packet));
+
+    // We hardcode i = 2 so we skip the fixed header in recvline.
+    int i = 2;
+
+    s->message_identifier = (1 << 8) * recvline[i] + recvline[i + 1]; i += 2;
+    s->topic_length       = (1 << 8) * recvline[i] + recvline[i + 1]; i += 2;
+
+    s->topic              = malloc((s->topic_length + 1) * sizeof(unsigned char));
+    memcpy(s->topic, &recvline[i], s->topic_length);
+    s->topic[s->topic_length] = 0;
+
+    return s;
+}
+
+void subscribe_client(subscribe_packet* s) {
+    pid_t pid = getpid();
 }
