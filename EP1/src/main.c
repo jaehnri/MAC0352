@@ -42,6 +42,7 @@
 
 #include "mqtt.h"
 #include "util.h"
+#include "topic.h"
 
 #define LISTENQ 1
 #define MAXDATASIZE 100
@@ -106,6 +107,8 @@ int main (int argc, char **argv) {
         exit(4);
     }
 
+    create_topic_structure();
+
     printf("[Servidor no ar. Aguardando conexões na porta %s]\n",argv[1]);
     printf("[Para finalizar, pressione CTRL+c ou rode um kill ou killall]\n");
 
@@ -162,8 +165,8 @@ int main (int argc, char **argv) {
                 recvline[n] = 0;
 
                 printf("[Cliente conectado no processo filho %d enviou]: ", getpid());
-
                 print_hex(recvline, n);
+
                 fixed_header* h = parse_fixed_header(recvline);
 
                 switch (h->type) {
@@ -177,6 +180,8 @@ int main (int argc, char **argv) {
                         break;
                     case SUBSCRIBE:
                         printf("SUBSCRIBE request\n");
+                        subscribe_packet* s = parse_subscribe_packet(recvline);
+
                         break;
                     case PINGREQ:
                         printf("PINGREQ request\n");
@@ -208,5 +213,7 @@ int main (int argc, char **argv) {
              * pelo processo filho) */
             close(connfd);
     }
+
+    clean_topic_structure();
     exit(0);
 }
