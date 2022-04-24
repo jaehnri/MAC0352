@@ -43,6 +43,23 @@ u_int8_t* create_connack_packet() {
 
 /** ================================================================================================================= */
 
+u_int8_t* create_pingresp_packet() {
+    int i = 0;
+    int length = 2;
+
+    u_int8_t* connack_packet = malloc((length + 1) * sizeof(u_int8_t));
+
+    // Packet type + flags
+    connack_packet[i++] = PINGRESP << 4;
+
+    // Message Length
+    connack_packet[i++] = 0;
+
+    return connack_packet;
+}
+
+/** ================================================================================================================= */
+
 subscribe_packet* parse_subscribe_packet(unsigned char* recvline) {
     subscribe_packet* s = malloc(sizeof(subscribe_packet));
 

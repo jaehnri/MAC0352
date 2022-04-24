@@ -175,21 +175,28 @@ int main (int argc, char **argv) {
                         u_int8_t* connack_packet = create_connack_packet();
                         write(connfd, connack_packet, 4);
                         break;
+
+                    case PINGREQ:
+                        printf("PINGREQ request\n");
+                        u_int8_t* pingresp_packet = create_pingresp_packet();
+                        write(connfd, pingresp_packet, 2);
+                        break;
+
                     case PUBLISH:
                         printf("PUBLISH request\n");
                         break;
+
                     case SUBSCRIBE:
                         printf("SUBSCRIBE request\n");
                         subscribe_packet* s = parse_subscribe_packet(recvline);
                         u_int8_t* suback_packet = create_suback_packet(s->message_identifier);
                         write(connfd, suback_packet, 5);
                         break;
-                    case PINGREQ:
-                        printf("PINGREQ request\n");
-                        break;
+
                     case DISCONNECT:
                         printf("DISCONNECT request\n");
                         break;
+
                     default:
                         printf("Unknown packet request\n");
                 }
