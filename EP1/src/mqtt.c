@@ -124,10 +124,9 @@ void start_listener_child_process(int topic_id, int connfd) {
     if ((child_pid = fork()) == 0) {
         int client_offset = topics.current_offset[topic_id];
 
-        for (;;) {
-
+        while (1) {
             if (client_offset != topics.current_offset[topic_id]) {
-                client_offset = (topics.current_offset[topic_id] + 1) % TOPIC_MESSAGE_RETENTION_QUANTITY;
+                client_offset = (client_offset + 1) % TOPIC_MESSAGE_RETENTION_QUANTITY;
                 write(connfd, topics.messages[topic_id][client_offset], topics.messages_length[topic_id][client_offset]);
             }
             usleep(100);
