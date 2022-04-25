@@ -98,15 +98,15 @@ int create_topic(subscribe_packet* s) {
     return -1;
 }
 
-int send_message(publish_packet* p, unsigned char* raw_publish_packet, int raw_packet_size) {
+int send_message(publish_packet* p) {
     int topic_id = get_topic_id_by_name(p->topic);
 
     int new_offset = (topics.current_offset[topic_id] + 1) % TOPIC_MESSAGE_RETENTION_QUANTITY;
 
-    memcpy(topics.messages[topic_id][new_offset], raw_publish_packet, raw_packet_size);
-    topics.messages[topic_id][new_offset][raw_packet_size] = 0;
+    memcpy(topics.messages[topic_id][new_offset], p->raw_packet, p->raw_packet_length);
+    topics.messages[topic_id][new_offset][p->raw_packet_length] = 0;
     topics.current_offset[topic_id] = new_offset;
-    topics.messages_length[topic_id][new_offset] = raw_packet_size;
+    topics.messages_length[topic_id][new_offset] = p->raw_packet_length;
 
     printf("Topic ID %d new offset is %d and packet size is %d\n", topic_id, topics.current_offset[topic_id], topics.messages_length[topic_id][new_offset]);
     return 0;

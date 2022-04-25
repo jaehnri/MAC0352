@@ -35,6 +35,6 @@ int create_topic(subscribe_packet* s);
 
 int get_topic_id_by_name(char* topic);
 
-int send_message(publish_packet* p, unsigned char* raw_publish_packet, int raw_packet_size);
+int send_message(publish_packet* p);
 
 #endif

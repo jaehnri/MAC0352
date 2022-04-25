@@ -153,6 +153,16 @@ publish_packet* parse_publish_packet(fixed_header* h, unsigned char* recvline) {
     memcpy(p->message, &recvline[i], p->message_length);
     p->message[p->message_length] = 0;
 
+    // This raw_packet property is used to fix a weird bug where recvline contains both
+    // PUBLISH and DISCONNECT packages. When this happens, we know the DISCONNECT is from
+    // a publisher and can be ignored.
+    // What we do here is consider only the package length in the fixed header + the two bytes
+    // from the fixed header.
+    p->raw_packet_length = h->length + 2;
+    p->raw_packet = malloc(p->raw_packet_length * sizeof (unsigned char));
+    memcpy(p->raw_packet, &recvline[0], p->raw_packet_length);
+    p->raw_packet[p->raw_packet_length] = 0;
+
     return p;
 }
 

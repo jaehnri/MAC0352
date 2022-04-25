@@ -187,7 +187,7 @@ int main (int argc, char **argv) {
                     case PUBLISH:
                         printf("PUBLISH request\n");
                         publish_packet* p = parse_publish_packet(h, recvline);
-                        send_message(p, recvline, n);
+                        send_message(p);
                         free(p->topic);
                         free(p->message);
                         free(p);

@@ -101,6 +101,8 @@ typedef struct publish_packet {
     u_int16_t message_length;
     char* topic;
     char* message;
+    unsigned char* raw_packet;
+    u_int16_t raw_packet_length;
 } publish_packet;
 
 publish_packet* parse_publish_packet(fixed_header* h, unsigned char* recvline);
