@@ -40,9 +40,9 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "topic.h"
 #include "mqtt.h"
 #include "util.h"
-#include "topic.h"
 
 #define LISTENQ 1
 #define MAXDATASIZE 100
@@ -174,23 +174,39 @@ int main (int argc, char **argv) {
                         printf("CONNECT request\n");
                         u_int8_t* connack_packet = create_connack_packet();
                         write(connfd, connack_packet, 4);
+                        free(connack_packet);
                         break;
 
                     case PINGREQ:
                         printf("PINGREQ request\n");
                         u_int8_t* pingresp_packet = create_pingresp_packet();
                         write(connfd, pingresp_packet, 2);
+                        free(pingresp_packet);
                         break;
 
                     case PUBLISH:
                         printf("PUBLISH request\n");
+                        publish_packet* p = parse_publish_packet(h, recvline);
+                        send_message(p, recvline, n);
+                        free(p->topic);
+                        free(p->message);
+                        free(p);
                         break;
 
                     case SUBSCRIBE:
                         printf("SUBSCRIBE request\n");
                         subscribe_packet* s = parse_subscribe_packet(recvline);
-                        u_int8_t* suback_packet = create_suback_packet(s->message_identifier);
-                        write(connfd, suback_packet, 5);
+                        int topic_id = subscribe_client(s);
+                        if (topic_id == -1) {
+                            u_int8_t* suback_packet = create_suback_packet(s->message_identifier, 0);
+                            write(connfd, suback_packet, 5);
+                        } else {
+                            u_int8_t* suback_packet = create_suback_packet(s->message_identifier, 1);
+                            write(connfd, suback_packet, 5);
+                            start_listener_child_process(topic_id, connfd);
+                        }
+                        free(s->topic);
+                        free(s);
                         break;
 
                     case DISCONNECT:

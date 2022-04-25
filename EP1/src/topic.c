@@ -5,8 +5,9 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
-#define MAX_CLIENTS 1000
+#define MAX_MESSAGE_SIZE 129
 
 
 /**
@@ -45,26 +46,64 @@ void free_shared_memory(void* ptr, size_t size) {
 topic topics;
 
 void create_topic_structure() {
-    topics.names              = malloc_shared_memory(TOPICS_SIZE * sizeof(unsigned char*));
-    topics.subscribers        = malloc_shared_memory(TOPICS_SIZE * sizeof(int*));
-    topics.subscribers_length = malloc_shared_memory(TOPICS_SIZE * sizeof(int));
+    topics.names          = malloc_shared_memory(TOPICS_SIZE * sizeof(char*));
+    topics.messages       = malloc_shared_memory(TOPICS_SIZE * sizeof(unsigned char**));
+    topics.current_offset = malloc_shared_memory(TOPICS_SIZE * sizeof(int));
 
     for (int i = 0; i < TOPICS_SIZE; i++) {
-        topics.names[i] = malloc_shared_memory(SCHAR_MAX * sizeof(char));
-        topics.subscribers[i] = malloc_shared_memory((MAX_CLIENTS + 1) * sizeof(int));
+        topics.names[i]    = malloc_shared_memory(MAX_TOPIC_NAME_SIZE * sizeof(char));
+        topics.names[i][0] = 0;
 
-        topics.names[i] = 0;
-        topics.subscribers_length[i] = 0;
+        topics.messages[i] = malloc_shared_memory(TOPIC_MESSAGE_RETENTION_QUANTITY * sizeof(unsigned char*));
+
+        for (int j = 0; j < TOPIC_MESSAGE_RETENTION_QUANTITY; j++) {
+            topics.messages[i][j] = malloc_shared_memory(MAX_MESSAGE_SIZE * sizeof(unsigned char));
+            topics.messages[i][j][0] = 0;
+        }
+
+        topics.current_offset[i] = -1;
     }
 }
 
 void clean_topic_structure() {
     for (int i = 0; i < TOPICS_SIZE; i++) {
         free_shared_memory(topics.names[i], SCHAR_MAX * sizeof(char));
-        free_shared_memory(topics.subscribers[i], (MAX_CLIENTS + 1) * sizeof(int));
     }
 
-    free_shared_memory(topics.names, TOPICS_SIZE * sizeof(unsigned char));
-    free_shared_memory(topics.subscribers, TOPICS_SIZE * sizeof(int*));
-    free_shared_memory(topics.subscribers_length, TOPICS_SIZE * sizeof(int));
+    free_shared_memory(topics.names, TOPICS_SIZE * sizeof(char));
+    free_shared_memory(topics.current_offset, TOPICS_SIZE * sizeof(int));
+}
+
+int get_topic_id_by_name(char* topic) {
+    for (int i = 0; i < TOPICS_SIZE; i++) {
+        if (strcmp(topic, topics.names[i]) == 0) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+int create_topic(subscribe_packet* s) {
+    for (int i = 0; i < TOPICS_SIZE; i++) {
+        if (topics.names[i][0] == 0) {
+            memcpy(topics.names[i], s->topic, s->topic_length);
+            topics.names[i][s->topic_length] = 0;
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+int send_message(publish_packet* p, unsigned char* raw_publish_packet, int raw_packet_size) {
+    int topic_id = get_topic_id_by_name(p->topic);
+
+    int new_offset = (topics.current_offset[topic_id] + 1) % TOPIC_MESSAGE_RETENTION_QUANTITY;
+
+    memcpy(topics.messages[topic_id][new_offset], raw_publish_packet, raw_packet_size);
+    topics.messages[topic_id][new_offset][raw_packet_size] = 0;
+    topics.current_offset[topic_id] = new_offset;
+    printf("Topic ID %d new offset is %d\n", topic_id, topics.current_offset[topic_id]);
+    return 0;
 }

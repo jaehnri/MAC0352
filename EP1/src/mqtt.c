@@ -1,8 +1,10 @@
 #include "mqtt.h"
+#include "topic.h"
 #include "util.h"
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 
 /** ================================================================================================================= */
 
@@ -69,14 +71,28 @@ subscribe_packet* parse_subscribe_packet(unsigned char* recvline) {
     s->message_identifier = (1 << 8) * recvline[i] + recvline[i + 1]; i += 2;
     s->topic_length       = (1 << 8) * recvline[i] + recvline[i + 1]; i += 2;
 
-    s->topic              = malloc((s->topic_length + 1) * sizeof(unsigned char));
+    s->topic              = malloc((s->topic_length + 1) * sizeof(char));
     memcpy(s->topic, &recvline[i], s->topic_length);
     s->topic[s->topic_length] = 0;
 
     return s;
 }
 
-u_int8_t* create_suback_packet(u_int16_t message_id) {
+int subscribe_client(subscribe_packet* s) {
+    int topic_id = get_topic_id_by_name(s->topic);
+
+    if (topic_id == -1) {
+        topic_id = create_topic(s);
+
+        if (topic_id == -1) {
+            return -1;
+        }
+    }
+
+    return topic_id;
+}
+
+u_int8_t* create_suback_packet(u_int16_t message_id, int success) {
     int i = 0;
     int length = 5;
 
@@ -93,12 +109,51 @@ u_int8_t* create_suback_packet(u_int16_t message_id) {
     suback_packet[i++] = (u_int8_t)message_id;
 
     // Granted QoS is "Fire and Forget"
-    suback_packet[i++] = 0x00;
+    if (success == 1) {
+        suback_packet[i++] = 0x00;
+    } else {
+        suback_packet[i++] = 0x80;
+    }
 
     return suback_packet;
 }
 
-void subscribe_client(subscribe_packet* s) {
-    pid_t pid = getpid();
+void start_listener_child_process(int topic_id, int connfd) {
+    int child_pid;
+
+    if ((child_pid = fork()) == 0) {
+        int client_offset = topics.current_offset[topic_id];
+
+        for (;;) {
+
+            if (client_offset != topics.current_offset[topic_id]) {
+                client_offset = (topics.current_offset[topic_id] + 1) % TOPIC_MESSAGE_RETENTION_QUANTITY;
+                write(connfd, topics.messages[topic_id][client_offset], strlen(topics.messages[topic_id][client_offset]));
+            }
+            usleep(100);
+        }
+    }
 }
+
 /** ================================================================================================================= */
+
+publish_packet* parse_publish_packet(fixed_header* h, unsigned char* recvline) {
+    publish_packet* p = malloc(sizeof(publish_packet));
+
+    // We hardcode i = 2 so we skip the fixed header in recvline.
+    int i = 2;
+    p->topic_length       = (1 << 8) * recvline[i] + recvline[i + 1]; i += 2;
+    p->topic              = malloc((p->topic_length + 1) * sizeof(char));
+    memcpy(p->topic, &recvline[i], p->topic_length);
+    p->topic[p->topic_length] = 0;
+
+    i += p->topic_length;
+    p->message_length = h->length - p->topic_length - 2;
+
+    p->message = malloc((p->message_length + 1) * sizeof(char));
+    memcpy(p->message, &recvline[i], p->message_length);
+    p->message[p->message_length] = 0;
+
+    return p;
+}
+

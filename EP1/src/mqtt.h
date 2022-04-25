@@ -1,3 +1,6 @@
+#ifndef MQTT_H
+#define MQTT_H
+
 #include <sys/types.h>
 
 /** ================================================================================================================= */
@@ -80,13 +83,28 @@ u_int8_t* create_pingresp_packet();
 typedef struct subscribe_packet {
     u_int16_t message_identifier;
     u_int16_t topic_length;
-    unsigned char* topic;
+    char* topic;
 } subscribe_packet;
 
 subscribe_packet* parse_subscribe_packet(unsigned char* recvline);
 
-void subscribe_client(subscribe_packet* s);
+u_int8_t* create_suback_packet(u_int16_t message_id, int success);
 
-u_int8_t* create_suback_packet(u_int16_t message_id);
+int subscribe_client(subscribe_packet* s);
+
+void start_listener_child_process(int topic_id, int connfd);
 
 /** ================================================================================================================= */
+
+typedef struct publish_packet {
+    u_int16_t topic_length;
+    u_int16_t message_length;
+    char* topic;
+    char* message;
+} publish_packet;
+
+publish_packet* parse_publish_packet(fixed_header* h, unsigned char* recvline);
+
+/** ================================================================================================================= */
+
+#endif
