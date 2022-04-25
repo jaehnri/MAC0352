@@ -46,15 +46,17 @@ void free_shared_memory(void* ptr, size_t size) {
 topic topics;
 
 void create_topic_structure() {
-    topics.names          = malloc_shared_memory(TOPICS_SIZE * sizeof(char*));
-    topics.messages       = malloc_shared_memory(TOPICS_SIZE * sizeof(unsigned char**));
-    topics.current_offset = malloc_shared_memory(TOPICS_SIZE * sizeof(int));
+    topics.names           = malloc_shared_memory(TOPICS_SIZE * sizeof(char*));
+    topics.messages        = malloc_shared_memory(TOPICS_SIZE * sizeof(unsigned char**));
+    topics.messages_length = malloc_shared_memory(TOPICS_SIZE * sizeof(int*));
+    topics.current_offset  = malloc_shared_memory(TOPICS_SIZE * sizeof(int));
 
     for (int i = 0; i < TOPICS_SIZE; i++) {
         topics.names[i]    = malloc_shared_memory(MAX_TOPIC_NAME_SIZE * sizeof(char));
         topics.names[i][0] = 0;
 
         topics.messages[i] = malloc_shared_memory(TOPIC_MESSAGE_RETENTION_QUANTITY * sizeof(unsigned char*));
+        topics.messages_length[i] = malloc_shared_memory(TOPIC_MESSAGE_RETENTION_QUANTITY * sizeof(int));
 
         for (int j = 0; j < TOPIC_MESSAGE_RETENTION_QUANTITY; j++) {
             topics.messages[i][j] = malloc_shared_memory(MAX_MESSAGE_SIZE * sizeof(unsigned char));
@@ -104,6 +106,8 @@ int send_message(publish_packet* p, unsigned char* raw_publish_packet, int raw_p
     memcpy(topics.messages[topic_id][new_offset], raw_publish_packet, raw_packet_size);
     topics.messages[topic_id][new_offset][raw_packet_size] = 0;
     topics.current_offset[topic_id] = new_offset;
-    printf("Topic ID %d new offset is %d\n", topic_id, topics.current_offset[topic_id]);
+    topics.messages_length[topic_id][new_offset] = raw_packet_size;
+
+    printf("Topic ID %d new offset is %d and packet size is %d\n", topic_id, topics.current_offset[topic_id], topics.messages_length[topic_id][new_offset]);
     return 0;
 }

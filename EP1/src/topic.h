@@ -22,6 +22,7 @@ typedef struct topic {
     int* current_offset;
     char** names;
     unsigned char*** messages;
+    int** messages_length;
 } topic;
 
 extern topic topics;
