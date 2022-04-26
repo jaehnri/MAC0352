@@ -110,6 +110,10 @@ int create_topic(subscribe_packet* s) {
 int send_message(publish_packet* p) {
     int topic_id = get_topic_id_by_name(p->topic);
 
+    if (topic_id == -1) {
+        return -1;
+    }
+
     int new_offset = (topics.current_offset[topic_id] + 1) % TOPIC_MESSAGE_RETENTION_QUANTITY;
 
     memcpy(topics.messages[topic_id][new_offset], p->raw_packet, p->raw_packet_length);
