@@ -119,9 +119,7 @@ u_int8_t* create_suback_packet(u_int16_t message_id, int success) {
 }
 
 void start_listener_child_process(int topic_id, int connfd) {
-    int child_pid;
-
-    if ((child_pid = fork()) == 0) {
+    if ((fork()) == 0) {
         int client_offset = topics.current_offset[topic_id];
 
         while (1) {
