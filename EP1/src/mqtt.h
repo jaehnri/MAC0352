@@ -15,7 +15,6 @@ enum packet_type {
     CONNACK    = 0x2,
 
     PUBLISH    = 0x3,
-    PUBACK     = 0x4,
 
     SUBSCRIBE  = 0x8,
     SUBACK     = 0x9,
