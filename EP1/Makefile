@@ -4,7 +4,7 @@ build:
 	gcc -o ep1 src/main.c src/mqtt.c src/util.c src/topic.c -Wall -g -pedantic -Wno-unused-result -fsanitize=address
 
 run: build
-	./ep1 8000
+	./ep1 1883
 
 ########################################################################################################################
 # Used to run the broker on a Docker container
