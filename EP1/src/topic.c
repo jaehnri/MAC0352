@@ -69,10 +69,19 @@ void create_topic_structure() {
 
 void clean_topic_structure() {
     for (int i = 0; i < TOPICS_SIZE; i++) {
-        free_shared_memory(topics.names[i], SCHAR_MAX * sizeof(char));
+        for (int j = 0; j < TOPIC_MESSAGE_RETENTION_QUANTITY; j++) {
+            free_shared_memory(topics.messages[i][j], MAX_MESSAGE_SIZE * sizeof(unsigned char));
+        }
+
+        free_shared_memory(topics.messages[i], TOPIC_MESSAGE_RETENTION_QUANTITY * sizeof(unsigned char*));
+        free_shared_memory(topics.messages_length, TOPIC_MESSAGE_RETENTION_QUANTITY * sizeof(int));
+        free_shared_memory(topics.names, MAX_TOPIC_NAME_SIZE * sizeof(char));
+
     }
 
-    free_shared_memory(topics.names, TOPICS_SIZE * sizeof(char));
+    free_shared_memory(topics.names, TOPICS_SIZE * sizeof(char*));
+    free_shared_memory(topics.messages, TOPICS_SIZE * sizeof(unsigned char**));
+    free_shared_memory(topics.messages_length, TOPICS_SIZE * sizeof(int*));
     free_shared_memory(topics.current_offset, TOPICS_SIZE * sizeof(int));
 }
 
